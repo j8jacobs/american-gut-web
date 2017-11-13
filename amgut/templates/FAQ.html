@@ -4,112 +4,36 @@
 {% set tl = text_locale['FAQ.html'] %}
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<script src="{% raw media_locale['SITEBASE'] %}/static/js/faq.js"></script>
 <style>
-	/*.QuestionGroup {  need specific ids so slideToggle doesnt toggle all*/
-	#GeneralQuestionsGroup, #LoginQuestionsGroup, #InstructionPacketGroup, #SampleResultsGroup,
-	#SampleProcessGroup, #MiscGroup {
-		background-color: #cccccc;
-		height: 45px;
-		width: 90%;
-		/*width: 850px;*/
-		/* text-align: center; using the left weighted icon now*/
-		/*padding: 10px;*/
-		border-style: solid;
-		border-width: 1px;
-		padding-left: 15px;
-		margin-top: 10px;
-		/*margin-bottom: 10px;*/
-	}
-	#GeneralQuestionsGroup:hover, #LoginQuestionsGroup:hover, #InstructionPacketGroup:hover, #SampleResultsGroup:hover,
-	#SampleProcessGroup:hover {
-		background-color: #ccdfff;
-	}
-	#GeneralQuestions, #LoginQuestions, #InstructionPacketQuestions, #SampleResultsQuestions, #SampleProcessQuestions,
-	#MiscQuestions {
-		background-color: #e5efff;
-		/* height: 20px; */
-		padding: 10px;
-		display: none;
-		width: 89.55%; /* at the same width, its slightly past */
-		/*width: 845px;*/
-		border: 1px solid black;
-	}
+.QuestionGroup {
+  /* Clickable Dropdown that holds all FAQ's relating to the group */
+  background-color: #cccccc;
+  height: 45px;
+  width: 90%;
+  border-style: solid;
+  border-width: 1px;
+  padding-left: 15px;
+  margin-top: 10px;
+}
 
+.QuestionGroup:hover {
+  background-color: #ccdfff;
+}
 
-	.QuestionSpace {
-		/* Want space to start with but it needs to grow with the question */
-		/* height:  200px; */
-	}
-
+.QuestionsDropdown {
+  /* The container for the questions that drop from the group */
+  background-color: #e5efff;
+  padding: 10px;
+  display: none;
+  width: 89.55%; /* at the same width, its slightly past on chrome */
+  border: 1px solid black;
+}
 </style>
 
-<script>
-	$(document).ready(function() {
-		$("#GeneralQuestionsGroup").click(function() {
-			$("#GeneralQuestions").slideToggle("slow");
-		});
-
-		$("#LoginQuestionsGroup").click(function() {
-			$("#LoginQuestions").slideToggle("slow");
-		});
-
-		$("#InstructionPacketGroup").click(function() {
-			$("#InstructionPacketQuestions").slideToggle("slow")
-		});	
-
-		$("#SampleResultsGroup").click(function() {
-			$("#SampleResultsQuestions").slideToggle("slow")
-		});
-
-		$("#SampleProcessGroup").click(function() {
-			$("#SampleProcessQuestions").slideToggle("slow")
-		});
-
-		$("#MiscGroup").click(function() {
-			$("#MiscQuestions").slideToggle("slow")
-		});
 
 
-		/* Only Display the question you want to see */
-		$( "a" ).on("click", function() {
-			//see if its already active- if so, just toggle off
-			var question = $(this).attr("href");
-			var questionNum = "q" + question.substring(4);
-			var questionId = "#q" + question.substring(4);
-			var hiddenElements = $(":hidden")
-			var elementHidden = false; 
-
-			/* If the element is not hidden, you need to hide it */
-			for (var i = 0; i < hiddenElements.length; i++) {
-				if (hiddenElements[i].id == questionNum) {
-					elementHidden = true;
-					break;
-				}
-			}
-			if (!elementHidden) {
-				// just toggle this off
-				$( questionId ).toggle("slow", function() {});
-			} else {
-				// otherwise, display the only new question
-				$( ".QuestionSpace > div" ).each(function() {
-					// close all other divs
-					$( this ).css("display", "none");
-				});
-				//display this div
-				$( questionId ).toggle("slow", function() {});
-			}
-		});
-	});
-</script>
-
-
-      <br>
-
-
-
-
-
-
+<br>
 <h2>{% raw tl['FAQ_HEADER'] %}</h2>
 <div class="faq_wrapper">
   <div class="faq">
@@ -117,22 +41,22 @@
       <h3>{% raw tl['LOOK_BELOW'] %}</h3>
 
 
-      <div id="GeneralQuestionsGroup">
+      <div id="GeneralQuestionsGroup" class="QuestionGroup">
       	<h3><i class="fa fa-caret-down" aria-hidden="true" style="font-size:18px; padding-right:8px;"></i>The American Gut Project General Questions and Information</h3>
       </div>
-      <div id="GeneralQuestions">
+      <div id="GeneralQuestions" class="QuestionsDropdown">
       	<ul class="faq">
-			<li><a id="faq26btn" href="#faq26">{% raw tl['NOT_A_BUSINESS'] %}</a></li>
-			<li><a href="#faq16">{% raw tl['INFORMATION_IDENTIFY_ME'] %}</a></li>
+    			<li><a id="faq26btn" href="#faq26">{% raw tl['NOT_A_BUSINESS'] %}</a></li>
+    			<li><a href="#faq16">{% raw tl['INFORMATION_IDENTIFY_ME'] %}</a></li>
       		<li><a href="#faq23">{% raw tl['PARTICIPATE_WITH_DIAGNOSIS'] %}</a></li>
       	</ul>
       </div>
 
 
-      <div id="LoginQuestionsGroup">
+      <div id="LoginQuestionsGroup" class="QuestionGroup">
       	<h3><i class="fa fa-caret-down" aria-hidden="true" style="font-size:18px; padding-right:8px;"></i>How do I log in/I’m having trouble logging in</h3>
       </div>
-      <div id="LoginQuestions">
+      <div id="LoginQuestions" class="QuestionsDropdown">
       	<ul class="faq">
       		<li><a href="#faq3">{% raw tl['LOG_IN_WHAT_NOW'] %}</a></li>
       		<li><a id="faq1btn" href="#faq1">{% raw tl['PASSWORD_SAME_VERIFICATION'] %}</a></li>
@@ -141,42 +65,42 @@
       </div>
 
 
-      <div id="InstructionPacketGroup">
-      	<h3><i class="fa fa-caret-down" aria-hidden="true" style="font-size:18px; padding-right:8px;"></i>I have a question about part of the sample submission process/something in the instruction packet</h3>
+      <div id="InstructionPacketGroup" class="QuestionGroup">
+      	<h3><i class="fa fa-caret-down" aria-hidden="true" style="font-size:18px; padding-right:8px;"></i>I have a question about the sample submission process</h3>
       </div>
-      <div id="InstructionPacketQuestions">
+      <div id="InstructionPacketQuestions" class="QuestionsDropdown">
       	<ul class="faq">
       		<li><a href="#faq5">{% raw tl['WHY_TWO_SWABS'] %}</a></li>
-			<li><a href="#faq6">{% raw tl['MULTIPLE_KITS_DIFFERENT_TIMES'] %}</a></li>
-			<li><a href="#faq9">{% raw tl['WHERE_SEND_SAMPLE'] %}</a></li>
+    			<li><a href="#faq6">{% raw tl['MULTIPLE_KITS_DIFFERENT_TIMES'] %}</a></li>
+    			<li><a href="#faq9">{% raw tl['WHERE_SEND_SAMPLE'] %}</a></li>
       	</ul>
       </div>
 
 
-      <div id="SampleResultsGroup">
+      <div id="SampleResultsGroup" class="QuestionGroup">
       	<h3><i class="fa fa-caret-down" aria-hidden="true" style="font-size:18px; padding-right:8px;"></i>I have a question about my sample results</h3>
       </div>
-      <div id="SampleResultsQuestions">
+      <div id="SampleResultsQuestions" class="QuestionsDropdown">
       	<ul class="faq">
       		<li><a href="#faq4">{% raw tl['TAKES_SIX_MONTHS'] %}</a></li>
-			<li><a href="#faq7">{% raw tl['WHAT_FORMS'] %}</a></li>
-			<li><a href="#faq10">{% raw tl['DIFFERENT_WHATS_WRONG_WITH_ME'] %}</a></li>
-			<li><a href="#faq11">{% raw tl['BETTER_OR_WORSE'] %}</a></li>
-			<li><a href="#faq12">{% raw tl['WHEN_RESULTS_NON_FECAL'] %}</a></li>
-			<li><a href="#faq13">{% raw tl['ONLY_FECAL_RESULTS'] %}</a></li>
-			<li><a href="#faq14">{% raw tl['COMBINE_RESULTS'] %}</a></li>
-			<li><a href="#faq15">{% raw tl['FECAL_NO_RESULTS'] %}</a></li>
-			<li><a href="#faq17">{% raw tl['FIND_DETAILED_INFO'] %}</a></li>
-			<li><a href="#faq19">{% raw tl['HOW_CHANGE_GUT'] %}</a></li>
-			<li><a href="#faq20">{% raw tl['ANOTHER_COPY_RESULTS'] %}</a></li>
+    			<li><a href="#faq7">{% raw tl['WHAT_FORMS'] %}</a></li>
+    			<li><a href="#faq10">{% raw tl['DIFFERENT_WHATS_WRONG_WITH_ME'] %}</a></li>
+    			<li><a href="#faq11">{% raw tl['BETTER_OR_WORSE'] %}</a></li>
+    			<li><a href="#faq12">{% raw tl['WHEN_RESULTS_NON_FECAL'] %}</a></li>
+    			<li><a href="#faq13">{% raw tl['ONLY_FECAL_RESULTS'] %}</a></li>
+    			<li><a href="#faq14">{% raw tl['COMBINE_RESULTS'] %}</a></li>
+    			<li><a href="#faq15">{% raw tl['FECAL_NO_RESULTS'] %}</a></li>
+    			<li><a href="#faq17">{% raw tl['FIND_DETAILED_INFO'] %}</a></li>
+    			<li><a href="#faq19">{% raw tl['HOW_CHANGE_GUT'] %}</a></li>
+    			<li><a href="#faq20">{% raw tl['ANOTHER_COPY_RESULTS'] %}</a></li>
       	</ul>
       </div>
 
 
-      <div id="SampleProcessGroup">
+      <div id="SampleProcessGroup" class="QuestionGroup">
       	<h3><i class="fa fa-caret-down" aria-hidden="true" style="font-size:18px; padding-right:8px;"></i>How are the samples processed?</h3>
       </div>
-      <div id="SampleProcessQuestions">
+      <div id="SampleProcessQuestions" class="QuestionsDropdown">
       	<ul class="faq">
       		<li><a href="#faq25">{% raw tl['HOW_PROCESS_SAMPLES'] %}</a></li>
       		<li><a href="#faq8">{% raw tl['RAW_DATA'] %}</a></li>
@@ -185,27 +109,33 @@
       </div>
 
 
-      <div id="MiscGroup">
+      <div id="MiscGroup" class="QuestionGroup">
       	<h3><i class="fa fa-caret-down" aria-hidden="true" style="font-size:18px; padding-right:8px;"></i>Miscellaneous Questions</h3>
       </div>
-      <div id="MiscQuestions">
+      <div id="MiscQuestions" class="QuestionsDropdown">
       	<ul class="faq">
       		<li><a href="#faq18">{% raw tl['WHO_MICHAEL_POLLAN'] %}</a></li>
-
       	</ul>
       </div>
 
-
+    <br>
     <div class="separator"></div>
     <br>
 
-    <div class="QuestionSpace">
+    <div id="QuestionSpace">
 	    <div id="q1" style="display:none;">
 	      <h3 class="faq_header" id="faq1">{% raw tl['PASSWORD_SAME_VERIFICATION'] %}</h3>
 	      <div class="faq_content">
 	          <p>{% raw tl['PASSWORD_SAME_VERIFICATION_ANS'] %}</p>
 	      </div>
 		</div> 
+
+    <div id="q2" style="display:none;">
+      <h3 class="faq_header" id="faq2">{% raw tl['PASSWORD_DOESNT_WORK'] %}</h3>
+        <div class="faq_content">
+            {% raw tl['PASSWORD_DOESNT_WORK_ANS'] %}
+        </div>
+    </div>
 
 		<div id="q3" style="display:none;">
 			<h3 class="faq_header" id="faq3">{% raw tl['LOG_IN_WHAT_NOW'] %}</h3>
@@ -223,203 +153,143 @@
       		</div>
 		</div>
 
-		<div id="q16" style="display:none;">
-	      <h3 class="faq_header" id="faq16">{% raw tl['INFORMATION_IDENTIFY_ME'] %}</h3>
-	      <div class="faq_content">
-	          <p>{% raw tl['INFORMATION_IDENTIFY_ME_ANS'] %}</p>
-	      </div>
-	     </div>
-
-		<div id="q23" style="display:none;">
-	      <h3 class="faq_header" id="faq23">{% raw tl['PARTICIPATE_WITH_DIAGNOSIS'] %}</h3>
-	      <div class="faq_content">
-	          <p>{% raw tl['PARTICIPATE_WITH_DIAGNOSIS_ANS'] %}</p>
-	      </div>
-	     </div>
-
-		<div id="q26" style="display:none;">
-	      <h3 class="faq_header" id="faq26">{% raw tl['NOT_A_BUSINESS'] %}</h3>
-	      <div class="faq_content">
-	          <p>{% raw tl['NOT_A_BUSINESS_ANS'] %}</p>
-	      </div>
-	    </div>
-	</div>   
-
-      <div class="separator"></div>
-      <h3>{% raw tl['WATCH_VIDEOS'] %}</h3>
-      <div class="videos clearfix">
-      <div class="video"><iframe src="{{media_locale['STEPS_VIDEO']}}" width="330" height="200" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe> <p>{% raw tl['STEPS_TO_FOLLOW'] %}</p></div>
-      <div class="video"><iframe src="{{media_locale['ADD_PARTICIPANT']}}" width="330" height="200" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe> <p>{% raw tl['ADD_PARTICIPANT'] %}</p></div>
-      </div>
-      <br />
-
-
- <div style="display:none;">
-      <h3 class="faq_header" id="faq0">{% raw tl['PROJECT_101'] %}</h3>
-      <div class="faq_content">
-            <p>{% raw tl['INTRODUCTION_BEGINNING'] %}</p>
-            <div class="indent_box">
-                  <h4>{% raw tl['INTRODUCTION_WHAT_IS_GUT_HEAD'] %}</h4>
-                  <p>{% raw tl['INTRODUCTION_WHAT_IS_GUT'] %}</p>
-                  <h4>{% raw tl['INTRODUCTION_WHAT_IS_PROJECT_HEAD'] %}</h4>
-                  <p>{% raw tl['INTRODUCTION_WHAT_IS_PROJECT'] %}</p>
-                  <h4>{% raw tl['INTRODUCTION_WHAT_IS_16S_HEAD'] %}</h4>
-                  <p>{% raw tl['INTRODUCTION_WHAT_IS_16S'] %}</p>
-                  <h4>{% raw tl['INTRODUCTION_ROBOTS_HEAD'] %}</h4>
-                  <p>{% raw tl['INTRODUCTION_ROBOTS'] %}</p>
-                  <h4>{% raw tl['INTRODUCTION_TREE_HEAD'] %}</h4>
-                  <p>{% raw tl['INTRODUCTION_TREE'] %}</p>
-                  <h4>{% raw tl['INTRODUCTION_MICROBIOME_HEAD'] %}</h4>
-                  <p>{% raw tl['INTRODUCTION_MICROBIOME'] %}</p>
-                  <h4>{% raw tl['INTRODUCTION_EAT_HEAD'] %}</h4>
-                  <p>{% raw tl['INTRODUCTION_EAT'] %}</p>
-                  <h4>{% raw tl['INTRODUCTION_MICROBES_COME_FROM_HEAD'] %}</h4>
-                  <p>{% raw tl['INTRODUCTION_MICROBES_COME_FROM'] %}</p>
-                  <h4>{% raw tl['INTRODUCTION_DISCOVER_HEAD'] %}</h4>
-                  <p>{% raw tl['INTRODUCTION_DISCOVER'] %}</p>
-                  <h4>{% raw tl['INTRODUCTION_STORIES_HEAD'] %}</h4>
-                  <p>{% raw tl['INTRODUCTION_STORIES'] %}</p>
-            </div>
-      </div>
-      <br>
-      <div class="separator"></div>
-      <br>
-      <h3 class="faq_header" id="faq1">{% raw tl['PASSWORD_SAME_VERIFICATION'] %}</h3>
-      <div class="faq_content">
-          <p>{% raw tl['PASSWORD_SAME_VERIFICATION_ANS'] %}</p>
-      </div>
-      <div class="separator"></div>
-      <h3 class="faq_header" id="faq2">{% raw tl['PASSWORD_DOESNT_WORK'] %}</h3>
-      <div class="faq_content">
-          {% raw tl['PASSWORD_DOESNT_WORK_ANS'] %}
-      </div>
-      <div class="separator"></div>
-      <h3 class="faq_header" id="faq3">{% raw tl['LOG_IN_WHAT_NOW'] %}</h3>
-      <div class="faq_content">
-          <p>{% raw tl['LOG_IN_WHAT_NOW_ANS_1'] %}</p>
-          <img src="{{media_locale['ADD_PARTICIPANT_IMG_1']}}">
-          {% raw tl['LOG_IN_WHAT_NOW_ANS_2'] %}
-          <img src="{{media_locale['ADD_PARTICIPANT_IMG_MENU']}}"/>
-          <p>{% raw tl['LOG_IN_WHAT_NOW_ANS_3'] %}</p>
-          <img src="{{media_locale['LOG_SAMPLE_OPTS']}}"/>
-          <p>{% raw tl['LOG_IN_WHAT_NOW_ANS_4'] %}</p>
-          <img src="{{media_locale['ADD_SAMPLE_HIGHLIGHT']}}"/>
-          <p>{% raw tl['LOG_IN_WHAT_NOW_ANS_5'] %}</p>
-          <img src="{{media_locale['ADD_SAMPLE_OVERVIEW']}}"/>
-      </div>
-      <div class="separator"></div>
+    <div id="q4" style="display:none;">
       <h3 class="faq_header" id="faq4">{% raw tl['TAKES_SIX_MONTHS'] %}</h3>
-      <div class="faq_content">
-          <p>{% raw tl['TAKES_SIX_MONTHS_ANS'] %}</p>
-      </div>
-      <div class="separator"></div>
+        <div class="faq_content">
+            <p>{% raw tl['TAKES_SIX_MONTHS_ANS'] %}</p>
+        </div>
+    </div>
+
+    <div id="q5" style="display:none;">
       <h3 class="faq_header" id="faq5">{% raw tl['WHY_TWO_SWABS'] %}</h3>
-      <div class="faq_content">
-      <p>{% raw tl['WHY_TWO_SWABS_ANS_1'] %}</p>
-      <img src="{{media_locale['SAMPLE_BARCODE']}}"/>
-      {% raw tl['WHY_TWO_SWABS_ANS_2'] %}
-      </div>
-      <div class="separator"></div>
+        <div class="faq_content">
+          <p>{% raw tl['WHY_TWO_SWABS_ANS_1'] %}</p>
+          <img src="{{media_locale['SAMPLE_BARCODE']}}"/>
+          {% raw tl['WHY_TWO_SWABS_ANS_2'] %}
+        </div>
+    </div>
+
+    <div id="q6" style="display:none;">
       <h3 class="faq_header" id="faq6">{% raw tl['MULTIPLE_KITS_DIFFERENT_TIMES'] %}</h3>
       <div class="faq_content">
-      <p>{% raw tl['MULTIPLE_KITS_DIFFERENT_TIMES_ANS'] %}</p>
+        <p>{% raw tl['MULTIPLE_KITS_DIFFERENT_TIMES_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
+
+    <div id="q7" style="display:none;">
       <h3 class="faq_header" id="faq7">{% raw tl['WHAT_FORMS'] %}</h3>
       <div class="faq_content">
-      <p>{% raw tl['WHAT_FORMS_ANS'] %}</p>
+        <p>{% raw tl['WHAT_FORMS_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
+
+    <div id="q8" style="display:none;">
       <h3 class="faq_header" id="faq8">{% raw tl['RAW_DATA'] %}</h3>
       <div class="faq_content">
           {% raw tl['RAW_DATA_ANS_1'] %}
           <p>{% raw tl['RAW_DATA_ANS_2'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
+
+    <div id="q9" style="display:none;">
       <h3 class="faq_header" id="faq9">{% raw tl['WHERE_SEND_SAMPLE'] %}</h3>
       <div class="faq_content">
           <p>{% raw tl['WHERE_SEND_SAMPLE_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
+
+    <div id="q10" style="display:none;">
       <h3 class="faq_header" id="faq10">{% raw tl['DIFFERENT_WHATS_WRONG_WITH_ME'] %}</h3>
       <div class="faq_content">
           <p>{% raw tl['DIFFERENT_WHATS_WRONG_WITH_ME_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
 
-
+    <div id="q11" style="display:none;">
       <h3 class="faq_header" id="faq11">{% raw tl['BETTER_OR_WORSE'] %}</h3>
       <div class="faq_content">
           <p>{% raw tl['BETTER_OR_WORSE_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
 
+    <div id="q12" style="display: none;">
       <h3 class="faq_header" id="faq12">{% raw tl['WHEN_RESULTS_NON_FECAL'] %}</h3>
       <div class="faq_content">
           <p>{% raw tl['WHEN_RESULTS_NON_FECAL_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
 
+    <div id="q13" style="display: none;">
       <h3 class="faq_header" id="faq13">{% raw tl['ONLY_FECAL_RESULTS'] %}</h3>
       <div class="faq_content">
           <p>{% raw tl['ONLY_FECAL_RESULTS_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
 
+    <div id="q14" style="display: none;">
       <h3 class="faq_header" id="faq14">{% raw tl['COMBINE_RESULTS'] %}</h3>
       <div class="faq_content">
           <p>{% raw tl['COMBINE_RESULTS_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
 
+    <div id="q15" style="display: none;">
       <h3 class="faq_header" id="faq15">{% raw tl['FECAL_NO_RESULTS'] %}</h3>
       <div class="faq_content">
           <p>{% raw tl['FECAL_NO_RESULTS_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
 
+    <div id="q16" style="display: none;">
       <h3 class="faq_header" id="faq16">{% raw tl['INFORMATION_IDENTIFY_ME'] %}</h3>
       <div class="faq_content">
           <p>{% raw tl['INFORMATION_IDENTIFY_ME_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
 
+    <div id="q17" style="display:none;">
       <h3 class="faq_header" id="faq17">{% raw tl['FIND_DETAILED_INFO'] %}</h3>
       <div class="faq_content">
           <p>{% raw tl['FIND_DETAILED_INFO_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
 
+    <div id="q18" style="display: none;">
       <h3 class="faq_header" id="faq18">{% raw tl['WHO_MICHAEL_POLLAN'] %}</h3>
       <div class="faq_content">
           <p>{% raw tl['WHO_MICHAEL_POLLAN_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
 
+    <div id="q19" style="display: none;">
       <h3 class="faq_header" id="faq19">{% raw tl['HOW_CHANGE_GUT'] %}</h3>
       <div class="faq_content">
           <p>{% raw tl['HOW_CHANGE_GUT_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
 
+    <div id="q20" style="display: none;">
       <h3 class="faq_header" id="faq20">{% raw tl['ANOTHER_COPY_RESULTS'] %}</h3>
       <div class="faq_content">
           <p>{% raw tl['ANOTHER_COPY_RESULTS_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
 
+    <div id="q23" style="display: none;">
       <h3 class="faq_header" id="faq23">{% raw tl['PARTICIPATE_WITH_DIAGNOSIS'] %}</h3>
       <div class="faq_content">
           <p>{% raw tl['PARTICIPATE_WITH_DIAGNOSIS_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
 
+    <div id="q24" style="display: none;">
       <h3 class="faq_header" id="faq24">{% raw tl['MISSING_METADATA'] %}</h3>
       <div class="faq_content">
           <p>{% raw tl['MISSING_METADATA_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
 
+    <div id="q25" style="display: none;">
       <h3 class="faq_header" id="faq25">{% raw tl['HOW_PROCESS_SAMPLES'] %}</h3>
       <div class="faq_content">
           <p>{% raw tl['HOW_PROCESS_SAMPLES_ANS_1'] %}</p>
@@ -433,18 +303,33 @@
           <p>{% raw tl['HOW_PROCESS_SAMPLES_ANS_9'] %}</p>
           <p>{% raw tl['HOW_PROCESS_SAMPLES_ANS_10'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
+
+    <div id="q26" style="display: none;">
       <h3 class="faq_header" id="faq26">{% raw tl['NOT_A_BUSINESS'] %}</h3>
       <div class="faq_content">
-
           <p>{% raw tl['NOT_A_BUSINESS_ANS'] %}</p>
       </div>
-      <div class="separator"></div>
+    </div>
   </div>
 
 
+  <div class="separator"></div>
+  <br>
+    <h3>{% raw tl['WATCH_VIDEOS'] %}</h3>
+    <div class="videos clearfix">
+      
+      <div class="video">
+        <iframe src="{{media_locale['STEPS_VIDEO']}}" width="330" height="200" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe> 
+        <p>{% raw tl['STEPS_TO_FOLLOW'] %}</p>
+      </div>
+      
+      <div class="video">
+        <iframe src="{{media_locale['ADD_PARTICIPANT']}}" width="330" height="200" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe> 
+        <p>{% raw tl['ADD_PARTICIPANT'] %}</p>
+      </div>
 
-
+    </div>
 
 </div>
 </div>
