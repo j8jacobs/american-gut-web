@@ -6,9 +6,19 @@
               'project': media_locale['PROJECT_TITLE'],
               'user_name': user_name} %}
 
+{% from future.utils import viewitems %}
+{% from amgut import media_locale %}
+{% from amgut.connections import ag_data, redis %}
+{% set human_participants, animal_participants, environmental_samples, kit_verified = ag_data.get_menu_items(skid) %}
+{% set base_user_id = ag_data.get_user_for_kit(skid) %}
+{% set avail_barcodes = ag_data.getAvailableBarcodes(base_user_id) %}
+{% set maintenance = redis.get('maintenance') %}
+
+
 
 <!-- <script src="{% raw media_locale['SITEBASE'] %}/static/js/new_workflow_nav_tabs.js"></script>-->
 <script type="text/javascript">
+    console.log("{{avail_barcodes}}")
 var active_rgb = "rgb(204, 223, 255)"   // Bright Blue
 var inactive_rgba = "rgba(0, 0, 0, 0)"  // Silver
 var tabs = {
@@ -27,30 +37,46 @@ var tabs = {
 }
 
 $(document).ready(function() {
-    for(var tab in tabs) {
-        if(tab == "partProf" && tabs.partProf.active) {
-            // ensure the tabs are not visible 
-            $("#sample_process_workflow").hide()
-            document.querySelectorAll('.selected')[0].className = 'unselected';
-            document.querySelectorAll('.portal_selected')[0].className = 'portal_unselected';
-        }
-    }
-
-
+    // Default to Participant Profile
     $(tabs.partProf.sel).css("background-color", active_rgb);
+    $("#sample_process").hide();
+    $("#sample_results").hide();
+
+
+    $("#workflow_nav > div").hover(function() {
+        $(this).css("background-color", active_rgb);
+    })
+
+    $(tabs.partProf.sel).on("click", function() {
+        $(tabs.partProf.sel).css("background-color", active_rgb)
+        $(tabs.sampProc.sel).css("background-color", inactive_rgba);
+        $(tabs.sampRes.sel).css("background-color", inactive_rgba);  
+        $("#participant_profile").show();
+        $("#sample_process").hide();
+        $("#sample_results").hide()
+    });
     
     $(tabs.sampProc.sel).on("click", function() {
         //  1. Flip Tab visibility on
         //      sample_workflow_tab visibility = not hidden
         //  2. Display a tab's content (either 1st on or last visited..)
         //      document.querySelectorAll('.portal_unselected')[0].className = 'portal_selected'
-
-
-        console.log("Samples tab clicked: color = " + $(tabs[1]).css("background-color"))
-        if($(sampProc.sel).css("background-color") != active_rgb) {
-            console.log("Need to toggle active")
-        }
+        $(tabs.partProf.sel).css("background-color", inactive_rgba)
+        $(tabs.sampProc.sel).css("background-color", active_rgb);
+        $(tabs.sampRes.sel).css("background-color", inactive_rgba);
+        $("#participant_profile").hide()
+        $("#sample_process").show()
+        $("#sample_results").hide()        
     });
+
+    $(tabs.sampRes.sel).on("click", function() {
+        $(tabs.partProf.sel).css("background-color", inactive_rgba);
+        $(tabs.sampProc.sel).css("background-color", inactive_rgba);
+        $(tabs.sampRes.sel).css("background-color", active_rgb);
+        $("#participant_profile").hide()
+        $("#sample_process").hide()
+        $("#sample_results").show()
+    })
 });
 
 
@@ -92,17 +118,10 @@ $(document).ready(function() {
 
 }
 
-.workflow_nav_tab:hover {
-    background-color: #ccdfff;
-}
-
 .left_end_border {
     border-left: .5px solid;
 }
-/*#participant_profiles_tab {
-    background-color: #ccdfff;
-}
-*/
+
 </style>
 
 <div class="flex_container">
@@ -123,222 +142,235 @@ $(document).ready(function() {
     <h2 class="msg">{% raw errmsg %}</h2>
 {% end %}
 
+    <!-- Start on the participant profile -->
+    <div id="participant_profile">
+        <!-- Find each of the kit id's, display them -->
+        <h1>Available Kit ID's</h1>
+        {% for barcode in avail_barcodes %}
+            <p> {{barcode}} </p>
+        {% end %}
+    </div>
 
-<div id="workflow">
-    <ul class="workflow_menu">
-<p> hello</p>
-        <!-- Sample Process Workflow -->
-        <div id="sample_process_workflow">
+    <div id="sample_process">
+        <ul class="workflow_menu">
+            <!-- Tabs -->
             {% if kit_verified %}
-            <li id="verify_tab" class="unselected disabled" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/1.png');padding-bottom:0px;">{% raw tl['VERIFY_TAB'] %}<br><br><img src="{% raw media_locale['SITEBASE'] %}/static/img/verify.png"/></li>
-            <li id="source_tab" class="selected" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/2.png');"><a href="#" onclick="selectTab('source')">{% raw tl['ADD_SOURCE_TAB'] %}<br><img src="{% raw media_locale['SITEBASE'] %}/static/img/source.png"/></a></li>
-            <li id="sample_tab" class="unselected" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/3.png');"><a href="#" onclick="selectTab('sample')">{% raw tl['TAKE_SAMPLE_TAB'] %}<br><br><img src="{% raw media_locale['SITEBASE'] %}/static/img/sample.png"/></a></li>
-            <li id="log_tab" class="unselected" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/4.png');"><a href="#" onclick="selectTab('log')">{% raw tl['LOG_SAMPLE_TAB'] %}<br><br><img src="{% raw media_locale['SITEBASE'] %}/static/img/log.png"/></a></li>
-            <li id="mail_tab" class="unselected" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/5.png');"><a href="#" onclick="selectTab('mail')">{% raw tl['MAIL_TAB'] %}<br><img src="{% raw media_locale['SITEBASE'] %}/static/img/mail.png"/></a></li>
-            <li id="results_tab" class="unselected" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/6.png');"><a href="#" onclick="selectTab('results')">{% raw tl['SEQ_TAB'] %}<br><img src="{% raw media_locale['SITEBASE'] %}/static/img/results.png"/></a></li>
+                <li id="verify_tab" class="unselected disabled" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/1.png');padding-bottom:0px;">{% raw tl['VERIFY_TAB'] %}<br><br><img src="{% raw media_locale['SITEBASE'] %}/static/img/verify.png"/></li>
+                <li id="source_tab" class="selected" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/2.png');"><a href="#" onclick="selectTab('source')">{% raw tl['ADD_SOURCE_TAB'] %}<br><img src="{% raw media_locale['SITEBASE'] %}/static/img/source.png"/></a></li>
+                <li id="sample_tab" class="unselected" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/3.png');"><a href="#" onclick="selectTab('sample')">{% raw tl['TAKE_SAMPLE_TAB'] %}<br><br><img src="{% raw media_locale['SITEBASE'] %}/static/img/sample.png"/></a></li>
+                <li id="log_tab" class="unselected" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/4.png');"><a href="#" onclick="selectTab('log')">{% raw tl['LOG_SAMPLE_TAB'] %}<br><br><img src="{% raw media_locale['SITEBASE'] %}/static/img/log.png"/></a></li>
+                <li id="mail_tab" class="unselected" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/5.png');"><a href="#" onclick="selectTab('mail')">{% raw tl['MAIL_TAB'] %}<br><img src="{% raw media_locale['SITEBASE'] %}/static/img/mail.png"/></a></li>
+                <li id="results_tab" class="unselected" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/6.png');"><a href="#" onclick="selectTab('results')">{% raw tl['SEQ_TAB'] %}<br><img src="{% raw media_locale['SITEBASE'] %}/static/img/results.png"/></a></li>
             {% else %}
-            <li id="verify_tab" class="selected" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/1.png');padding-bottom:0px;">{% raw tl['VERIFY_TAB'] %}<br><br><img src="{% raw media_locale['SITEBASE'] %}/static/img/verify.png"/></li>
-            <li id="source_tab" class="unselected disabled" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/2.png');"><a href="#">{% raw tl['ADD_SOURCE_TAB'] %}<br><img src="{% raw media_locale['SITEBASE'] %}/static/img/source.png"/></a></li>
-            <li id="sample_tab" class="unselected disabled" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/3.png');"><a href="#">{% raw tl['TAKE_SAMPLE_TAB'] %}<br><br><img src="{% raw media_locale['SITEBASE'] %}/static/img/sample.png"/></a></li>
-            <li id="log_tab" class="unselected disabled" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/4.png');"><a href="#">{% raw tl['LOG_SAMPLE_TAB'] %}<br><br><img src="{% raw media_locale['SITEBASE'] %}/static/img/log.png"/></a></li>
-            <li id="mail_tab" class="unselected disabled" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/5.png');"><a href="#">{% raw tl['MAIL_TAB'] %}<br><img src="{% raw media_locale['SITEBASE'] %}/static/img/mail.png"/></a></li>
-            <li id="results_tab" class="unselected disabled" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/6.png');"><a href="#">{% raw tl['SEQ_TAB'] %}<br><img src="{% raw media_locale['SITEBASE'] %}/static/img/results.png"/></a></li>
+                <li id="verify_tab" class="selected" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/1.png');padding-bottom:0px;">{% raw tl['VERIFY_TAB'] %}<br><br><img src="{% raw media_locale['SITEBASE'] %}/static/img/verify.png"/></li>
+                <li id="source_tab" class="unselected disabled" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/2.png');"><a href=background"#">{% raw tl['ADD_SOURCE_TAB'] %}<br><img src="{% raw media_locale['SITEBASE'] %}/static/img/source.png"/></a></li>
+                <li id="sample_tab" class="unselected disabled" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/3.png');"><a href="#">{% raw tl['TAKE_SAMPLE_TAB'] %}<br><br><img src="{% raw media_locale['SITEBASE'] %}/static/img/sample.png"/></a></li>
+                <li id="log_tab" class="unselected disabled" style="-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/4.png');"><a href="#">{% raw tl['LOG_SAMPLE_TAB'] %}<br><br><img src="{% raw media_locale['SITEBASE'] %}/static/img/log.png"/></a></li>
+                <li id="mail_tab" class="unselected disabled" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/5.png');"><a href="#">{% raw tl['MAIL_TAB'] %}<br><img src="{% raw media_locale['SITEBASE'] %}/static/img/mail.png"/></a></li>
+                <li id="results_tab" class="unselected disabled" style="background-image: url({% raw media_locale['SITEBASE'] %} + '/static/img/6.png');"><a href="#">{% raw tl['SEQ_TAB'] %}<br><img src="{% raw media_locale['SITEBASE'] %}/static/img/results.png"/></a></li>
             {% end %}
-                </ul>
+        </ul>
 
-                <div id="workflow_content">
-                    <div id="verify_content" class="portal_selected">
-                        <h2>{% raw tl['VERIFICATION_HEADER_1'] %}</h2>
-                        <p class="portal_blurb">{% raw tl['VERIFICATION_TEXT_1'] %}</p>
-                        <p class="portal_blurb">{% raw tl['VERIFICATION_TEXT_2'] %}</p>
-                        <p class="portal_blurb">{% raw tl['VERIFICATION_TEXT_3'] %}</p>
-            {% if not kit_verified %}
-                        <div class="middle_content centered">
-                            <h2>{% raw tl['VERIFICATION_HEADER_2'] %}</h2>
-                            <div class="lefta clearfix formdiv" id="verification_div">
-                                <form name="verification_submit" id="verification_submit" method="post" action="{% raw media_locale['SITEBASE'] %}/authed/portal/">
-                                    <h3>Kit ID: {{ skid }}</h3>
-                                    <h4>{% raw tl['VERIFICATION_CODE_PROMPT'] % fmt %}</a></h4>
-                {% if kit_ver_error %}
-                    {% raw tl['VERIFICATION_CODE_ERROR'] %}
+        <div id="workflow_content">
+            <div id="verify_content" class="portal_selected">
+                <h2>{% raw tl['VERIFICATION_HEADER_1'] %}</h2>
+                <p class="portal_blurb">{% raw tl['VERIFICATION_TEXT_1'] %}</p>
+                <p class="portal_blurb">{% raw tl['VERIFICATION_TEXT_2'] %}</p>
+                <p class="portal_blurb">{% raw tl['VERIFICATION_TEXT_3'] %}</p>
+                {% if not kit_verified %}
+                <div class="middle_content centered">
+                    <h2>{% raw tl['VERIFICATION_HEADER_2'] %}</h2>
+                    <div class="lefta clearfix formdiv" id="verification_div">
+                        <form name="verification_submit" id="verification_submit" method="post" action="{% raw media_locale['SITEBASE'] %}/authed/portal/">
+                            <h3>Kit ID: {{ skid }}</h3>
+                            <h4>{% raw tl['VERIFICATION_CODE_PROMPT'] % fmt %}</a></h4>
+                            {% if kit_ver_error %}
+                                {% raw tl['VERIFICATION_CODE_ERROR'] %}
+                            {% end %}
+                            <input class="{{ verification_textbox }}"  type="text" name="user_verification_code" id="user_verification_code"></input> <input type="submit" value="{{ tl['RESEND_VERIFICATION'] }}"></input>
+                            <h4>{% raw tl['VERIFY_BARCODES'] %}<a id="barcode_popup_trigger" class="help" title="" onmouseover="setVisible('barcode_popup')" onmouseout="setInvisible('barcode_popup')">(?)</a><div id="barcode_popup" class="help_popup invisible">{% raw tl['VERIFY_BARCODES_POPUP'] %}<br /><img src="{% raw media_locale['SITEBASE'] %}/static/img/sample_barcode.jpg"/></div></h4>
+                            <table width="30%">
+                            {% for barcode in barcodes %}
+                                <table width="30%%" id="barcode_{{ barcode }}" name="barcode_{{ barcode }}">
+                                    <tr>
+                                        <td><input type="checkbox" id="barcode_{{ barcode }}" name="barcode_{{ barcode }}"></input></td>
+                                        <td>{{ barcode }}</td>
+                                    </tr>
+                                </table>
+                            {% end %}
+                            </table><br>
+                            <div class="center">
+                                <input type="button" value="Verify" id="submit_form" onclick="validateVerification()"/>
+                            </div>
+                        </form><br>
+                    </div>
                 {% end %}
-                                    <input class="{{ verification_textbox }}"  type="text" name="user_verification_code" id="user_verification_code"></input> <input type="submit" value="{{ tl['RESEND_VERIFICATION'] }}"></input>
-                                    <h4>{% raw tl['VERIFY_BARCODES'] %}<a id="barcode_popup_trigger" class="help" title="" onmouseover="setVisible('barcode_popup')" onmouseout="setInvisible('barcode_popup')">(?)</a><div id="barcode_popup" class="help_popup invisible">{% raw tl['VERIFY_BARCODES_POPUP'] %}<br /><img src="{% raw media_locale['SITEBASE'] %}/static/img/sample_barcode.jpg"/></div></h4>
-                                    <table width="30%">
-                {% for barcode in barcodes %}
-                                        <table width="30%%" id="barcode_{{ barcode }}" name="barcode_{{ barcode }}">
-                                            <tr>
-                                                <td><input type="checkbox" id="barcode_{{ barcode }}" name="barcode_{{ barcode }}"></input></td>
-                                                <td>{{ barcode }}</td>
-                                            </tr>
-                                        </table>
-                {% end %}
-                                    </table>
-                                    <br>
-                                    <div class="center">
-                                        <input type="button" value="Verify" id="submit_form" onclick="validateVerification()"/>
-                                    </div>
-                                </form>
-                            <br>
-                        </div>
-            {% end %}
+                </div><!-- End of verify_content -->
+                <div id="source_content" class="portal_unselected">
+                    {% if unconsented %}
+                    <h2 style="color:red">{% raw tl['UNCONSENTED_HEADER'] %}</h2>
+                    {% raw tl['UNCONSENTED_EXPLANATION'] %}
+                      <ul>
+                      {% for barcode in unconsented %}
+                        <li>{{barcode}}</li>
+                      {% end %}
+                      </ul>
+                    {% end %}
+                    <h2>{% raw tl['SAMPLE_SOURCE_HEADER_1'] %}</h2>
+                    <p class="portal_blurb">{% raw tl['SAMPLE_SOURCE_TEXT_1'] % fmt %}</p>
+                    <p class="portal_blurb">{% raw tl['SAMPLE_SOURCE_TEXT_2']%}</p>
+                    <div id="source_icons">
+                        <a href="{% raw media_locale['SITEBASE'] %}/authed/new_participant_overview/"><div class="source_icon"><img src="{% raw media_locale['SITEBASE'] %}/static/img/human.png"><div>{% raw tl['SAMPLE_SOURCE_TYPE_HUMAN'] %}</div></div></a>
+                        <a href="{% raw media_locale['SITEBASE'] %}/authed/add_animal/"><div class="source_icon"><img src="{% raw media_locale['SITEBASE'] %}/static/img/animal.png"><div>{% raw tl['SAMPLE_SOURCE_TYPE_ANIMAL'] %}</div></div></a>
+                        <a href="" onclick="document.forms['add_sample_general'].submit(); return false;"><div class="source_icon"><img src="{% raw media_locale['SITEBASE'] %}/static/img/environmental.png"><div>{% raw tl['SAMPLE_SOURCE_TYPE_ENVIRONMENTAL'] %}</div></div></a>
+                    </div><br><br>
+                    <h2>{% raw tl['SURVEY_HEADER_1'] %}</h2>
+                    <p class="portal_blurb">{% raw tl['SURVEY_TEXT_1'] %}</p>
+                    <p class="portal_blurb">{% raw tl['SURVEY_TEXT_2'] %}</p>
+                    <p class="portal_blurb">{% raw tl['SURVEY_TEXT_3'] %}</p>
+                    <p class="portal_blurb">{% raw tl['SURVEY_TEXT_4'] %}</p>
+                    <div class="centered">
+                        <img src="{% raw media_locale['PORTAL_DIET_QUESTIONS'] %}"
+                         width=818>
                     </div>
-                    <div id="source_content" class="portal_unselected">
-                        {% if unconsented %}
-                        <h2 style="color:red">{% raw tl['UNCONSENTED_HEADER'] %}</h2>
-                        {% raw tl['UNCONSENTED_EXPLANATION'] %}
-                          <ul>
-                          {% for barcode in unconsented%}
-                            <li>{{barcode}}</li>
-                          {% end %}
-                          </ul>
-                        {% end %}
-                        <h2>{% raw tl['SAMPLE_SOURCE_HEADER_1'] %}</h2>
-                        <p class="portal_blurb">{% raw tl['SAMPLE_SOURCE_TEXT_1'] % fmt %}</p>
-                        <p class="portal_blurb">{% raw tl['SAMPLE_SOURCE_TEXT_2']%}</p>
-                        <div id="source_icons">
-                            <a href="{% raw media_locale['SITEBASE'] %}/authed/new_participant_overview/"><div class="source_icon"><img src="{% raw media_locale['SITEBASE'] %}/static/img/human.png"><div>{% raw tl['SAMPLE_SOURCE_TYPE_HUMAN'] %}</div></div></a>
-                            <a href="{% raw media_locale['SITEBASE'] %}/authed/add_animal/"><div class="source_icon"><img src="{% raw media_locale['SITEBASE'] %}/static/img/animal.png"><div>{% raw tl['SAMPLE_SOURCE_TYPE_ANIMAL'] %}</div></div></a>
-                            <a href="" onclick="document.forms['add_sample_general'].submit(); return false;"><div class="source_icon"><img src="{% raw media_locale['SITEBASE'] %}/static/img/environmental.png"><div>{% raw tl['SAMPLE_SOURCE_TYPE_ENVIRONMENTAL'] %}</div></div></a>
-                        </div>
-                        <br />
-                        <br />
-                        <h2>{% raw tl['SURVEY_HEADER_1'] %}</h2>
-                        <p class="portal_blurb">{% raw tl['SURVEY_TEXT_1'] %}</p>
-                        <p class="portal_blurb">{% raw tl['SURVEY_TEXT_2'] %}</p>
-                        <p class="portal_blurb">{% raw tl['SURVEY_TEXT_3'] %}</p>
-                        <p class="portal_blurb">{% raw tl['SURVEY_TEXT_4'] %}</p>
-                        <div class="centered">
-                            <img src="{% raw media_locale['PORTAL_DIET_QUESTIONS'] %}"
-                             width=818>
-                        </div>
-                    </div>
-                    <div id="sample_content" class="portal_unselected">
-                        {% if unconsented %}
-                        <h2 style="color:red">{% raw tl['UNCONSENTED_HEADER'] %}</h2>
-                        {% raw tl['UNCONSENTED_EXPLANATION'] %}
-                          <ul>
-                          {% for barcode in unconsented%}
-                            <li>{{barcode}}</li>
-                          {% end %}
-                          </ul>
-                        {% end %}
-                        <h2>{% raw tl['SAMPLE_STEPS_HEADER_1'] %}</h2>
-                        <p class="portal_blurb">{% raw tl['SAMPLE_STEPS_TEXT_1'] %}</p>
-                        <ol class="sample_steps">{% raw tl['SAMPLE_STEPS_TEXT_2'] %}</ol>
-                        <p class="portal_blurb">{% raw tl['SAMPLE_STEPS_TEXT_3'] % fmt %}</p>
-                        <h2>{% raw tl['SAMPLE_STEPS_HEADER_2'] %}</h2>
-                        <p class="portal_blurb">{% raw tl['SAMPLE_STEPS_TEXT_4'] %}</p>
-                        <div class="centered"><img src="{% raw media_locale['SITEBASE'] %}/static/img/sampling_wrong.png"><img src="{% raw media_locale['SITEBASE'] %}/static/img/sampling_correct.png"></div>
-                        <p class="portal_blurb">{% raw tl['SAMPLE_STEPS_TEXT_5'] %}</p>
-                        <div class="centered"><img src="{% raw media_locale['SITEBASE'] %}/static/img/biomass.png"></div>
-                        <div class="centered"><img src="{% raw media_locale['SITEBASE'] %}/static/img/good1.png"><img src="{% raw media_locale['SITEBASE'] %}/static/img/good2.png"><br/><img src="{% raw media_locale['SITEBASE'] %}/static/img/bad1.png"><img src="{% raw media_locale['SITEBASE'] %}/static/img/bad2.png"></div>
-                        <br>
-                        <p class="portal_blurb">{% raw tl['SAMPLE_STEPS_TEXT_6'] %}</p>
-                        <div class="centered"><img src="{% raw media_locale['SITEBASE'] %}/static/img/oral.png"></div>
-                        <p class="portal_blurb">{% raw tl['SAMPLE_STEPS_TEXT_7'] %}</p>
-                        <div class="centered"><img src="{% raw media_locale['SITEBASE'] %}/static/img/forehead.png"></div>
-                        <p class="portal_blurb">{% raw tl['SAMPLE_STEPS_TEXT_8'] %}</p>
-                        <br>
-                        <p class="portal_blurb">{% raw tl['SAMPLE_STEPS_TEXT_9'] %}</p>
-                        <br>
-                    </div>
-                    <div id="log_content" class="portal_unselected">
-                        {% if unconsented %}
-                        <h2 style="color:red">{% raw tl['UNCONSENTED_HEADER'] %}</h2>
-                        {% raw tl['UNCONSENTED_EXPLANATION'] %}
-                          <ul>
-                          {% for barcode in unconsented%}
-                            <li>{{barcode}}</li>
-                          {% end %}
-                          </ul>
-                        {% end %}
-                        <h2>{% raw tl['LOG_SAMPLE_HEADER_1'] %}</h2>
-                        <p class="portal_blurb">{% raw tl['LOG_SAMPLE_TEXT_1'] %}</p>
-                        <div class="centered"><img src="{% raw media_locale['SITEBASE'] %}/static/img/labeled_tube.png"></div>
-                        <p class="portal_blurb">{% raw tl['LOG_SAMPLE_TEXT_2'] %}</p>
-                    </div>
-                    <div id="mail_content" class="portal_unselected">
-                        {% if unconsented %}
-                        <h2 style="color:red">{% raw tl['UNCONSENTED_HEADER'] %}</h2>
-                        {% raw tl['UNCONSENTED_EXPLANATION'] %}
-                          <ul>
-                          {% for barcode in unconsented%}
-                            <li>{{barcode}}</li>
-                          {% end %}
-                          </ul>
-                        {% end %}
-                        <h2 style="width:500px;margin-right:0px;float:left;">{% raw tl['MAILING_HEADER_1'] %}</h2>
-                        <br><br><br>
-                        <p class="portal_blurb">{% raw tl['MAILING_TEXT_1'] %}</p>
-                        <p class="portal_blurb">{% raw tl['MAILING_TEXT_2'] %}</p>
-                        <p class="portal_blurb">{% raw tl['MAILING_TEXT_3'] %}</p>
-                        <p class="portal_blurb">{% raw tl['MAILING_TEXT_4'] %}</p>
-                        <p class="portal_blurb">{% raw tl['MAILING_TEXT_5'] %}</p>
-                        <br />
-                        <h2>{% raw tl['DOMESTIC_HEADER_1'] %}</h2>
-                        <p class="portal_blurb">{% raw tl['DOMESTIC_TEXT_1'] %}</p>
-                        <p class="portal_blurb">{% raw tl['DOMESTIC_TEXT_2'] %}</p>
-                        {% raw tl['DOMESTIC_TEXT_3'] %}
-                        <br />
-                        <h2>{% raw tl['INTERNATIONAL_HEADER_1'] %}</h2>
-                        <p class="portal_blurb">
-                            {% raw tl['INTERNATIONAL_TEXT_1'] %}
-                            <br /><br />
-                            {% raw tl['INTERNATIONAL_TEXT_2'] %}
-                            <br /><br />
-                            {% raw tl['INTERNATIONAL_TEXT_3'] %}
-                        </p>
-                        <h3>{% raw tl['INTERNATIONAL_HEADER_2'] %}</h3>
-                        <ul class="shipping">{% raw tl['INTERNATIONAL_TEXT_4'] %}</ul>
-                        <br /><br />
-                        <div class="centered"><img src="{% raw media_locale['PORTAL_SHIPPING'] %}"/></div>
-                    </div>
-                    <div id="results_content" class="portal_unselected">
-                        {% if unconsented %}
-                        <h2 style="color:red">{% raw tl['UNCONSENTED_HEADER'] %}</h2>
-                        {% raw tl['UNCONSENTED_EXPLANATION'] %}
-                          <ul>
-                          {% for barcode in unconsented%}
-                            <li>{{barcode}}</li>
-                          {% end %}
-                          </ul>
-                        {% end %}
-                        <h2>{% raw tl['RESULTS_HEADER_1'] %}</h2>
-                        <p class="portal_blurb">{% raw tl['RESULTS_TEXT_1'] %}</p>
-                        <p class="portal_blurb">{% raw tl['RESULTS_TEXT_2'] %}</p>
+                </div><!-- End of source_content -->
 
-            {% if results %}
+                <div id="sample_content" class="portal_unselected">
+                    {% if unconsented %}
+                    <h2 style="color:red">{% raw tl['UNCONSENTED_HEADER'] %}</h2>
+                    {% raw tl['UNCONSENTED_EXPLANATION'] %}
+                      <ul>
+                      {% for barcode in unconsented%}
+                        <li>{{barcode}}</li>
+                      {% end %}
+                      </ul>
+                    {% end %}
+                    <h2>{% raw tl['SAMPLE_STEPS_HEADER_1'] %}</h2>
+                    <p class="portal_blurb">{% raw tl['SAMPLE_STEPS_TEXT_1'] %}</p>
+                    <ol class="sample_steps">{% raw tl['SAMPLE_STEPS_TEXT_2'] %}</ol>
+                    <p class="portal_blurb">{% raw tl['SAMPLE_STEPS_TEXT_3'] % fmt %}</p>
+                    <h2>{% raw tl['SAMPLE_STEPS_HEADER_2'] %}</h2>
+                    <p class="portal_blurb">{% raw tl['SAMPLE_STEPS_TEXT_4'] %}</p>
+                    <div class="centered"><img src="{% raw media_locale['SITEBASE'] %}/static/img/sampling_wrong.png"><img src="{% raw media_locale['SITEBASE'] %}/static/img/sampling_correct.png"></div>
+                    <p class="portal_blurb">{% raw tl['SAMPLE_STEPS_TEXT_5'] %}</p>
+                    <div class="centered"><img src="{% raw media_locale['SITEBASE'] %}/static/img/biomass.png"></div>
+                    <div class="centered"><img src="{% raw media_locale['SITEBASE'] %}/static/img/good1.png"><img src="{% raw media_locale['SITEBASE'] %}/static/img/good2.png"><br/><img src="{% raw media_locale['SITEBASE'] %}/static/img/bad1.png"><img src="{% raw media_locale['SITEBASE'] %}/static/img/bad2.png"></div><br>
+                    <p class="portal_blurb">{% raw tl['SAMPLE_STEPS_TEXT_6'] %}</p>
+                    <div class="centered"><img src="{% raw media_locale['SITEBASE'] %}/static/img/oral.png"></div>
+                    <p class="portal_blurb">{% raw tl['SAMPLE_STEPS_TEXT_7'] %}</p>
+                    <div class="centered"><img src="{% raw media_locale['SITEBASE'] %}/static/img/forehead.png"></div>
+                    <p class="portal_blurb">{% raw tl['SAMPLE_STEPS_TEXT_8'] %}</p><br>
+                    <p class="portal_blurb">{% raw tl['SAMPLE_STEPS_TEXT_9'] %}</p><br>
+                </div><!-- End of sample_content -->
+
+                <div id="log_content" class="portal_unselected">
+                    {% if unconsented %}
+                    <h2 style="color:red">{% raw tl['UNCONSENTED_HEADER'] %}</h2>
+                    {% raw tl['UNCONSENTED_EXPLANATION'] %}
+                      <ul>
+                      {% for barcode in unconsented%}
+                        <li>{{barcode}}</li>
+                      {% end %}
+                      </ul>
+                    {% end %}
+                    <h2>{% raw tl['LOG_SAMPLE_HEADER_1'] %}</h2>
+                    <p class="portal_blurb">{% raw tl['LOG_SAMPLE_TEXT_1'] %}</p>
+                    <div class="centered"><img src="{% raw media_locale['SITEBASE'] %}/static/img/labeled_tube.png"></div>
+                    <p class="portal_blurb">{% raw tl['LOG_SAMPLE_TEXT_2'] %}</p>
+                </div><!-- End of log_content -->
+
+                <div id="mail_content" class="portal_unselected">
+                    {% if unconsented %}
+                    <h2 style="color:red">{% raw tl['UNCONSENTED_HEADER'] %}</h2>
+                    {% raw tl['UNCONSENTED_EXPLANATION'] %}
+                      <ul>
+                      {% for barcode in unconsented%}
+                        <li>{{barcode}}</li>
+                      {% end %}
+                      </ul>
+                    {% end %}
+                    <h2 style="width:500px;margin-right:0px;float:left;">{% raw tl['MAILING_HEADER_1'] %}</h2><br><br><br>
+                    <p class="portal_blurb">{% raw tl['MAILING_TEXT_1'] %}</p>
+                    <p class="portal_blurb">{% raw tl['MAILING_TEXT_2'] %}</p>
+                    <p class="portal_blurb">{% raw tl['MAILING_TEXT_3'] %}</p>
+                    <p class="portal_blurb">{% raw tl['MAILING_TEXT_4'] %}</p>
+                    <p class="portal_blurb">{% raw tl['MAILING_TEXT_5'] %}</p><br />
+                    <h2>{% raw tl['DOMESTIC_HEADER_1'] %}</h2>
+                    <p class="portal_blurb">{% raw tl['DOMESTIC_TEXT_1'] %}</p>
+                    <p class="portal_blurb">{% raw tl['DOMESTIC_TEXT_2'] %}</p>
+                    {% raw tl['DOMESTIC_TEXT_3'] %}<br />
+                    <h2>{% raw tl['INTERNATIONAL_HEADER_1'] %}</h2>
+                    <p class="portal_blurb">
+                        {% raw tl['INTERNATIONAL_TEXT_1'] %}<br /><br />
+                        {% raw tl['INTERNATIONAL_TEXT_2'] %}<br /><br />
+                        {% raw tl['INTERNATIONAL_TEXT_3'] %}
+                    </p>
+                    <h3>{% raw tl['INTERNATIONAL_HEADER_2'] %}</h3>
+                    <ul class="shipping">{% raw tl['INTERNATIONAL_TEXT_4'] %}</ul> <br /><br />
+                    <div class="centered"><img src="{% raw media_locale['PORTAL_SHIPPING'] %}"/></div>
+                </div><!-- End of main_content -->
+
+                <div id="results_content" class="portal_unselected">
+                    {% if unconsented %}
+                    <h2 style="color:red">{% raw tl['UNCONSENTED_HEADER'] %}</h2>
+                    {% raw tl['UNCONSENTED_EXPLANATION'] %}
+                      <ul>
+                      {% for barcode in unconsented%}
+                        <li>{{barcode}}</li>
+                      {% end %}
+                      </ul>
+                    {% end %}
+                    <h2>{% raw tl['RESULTS_HEADER_1'] %}</h2>
+                    <p class="portal_blurb">{% raw tl['RESULTS_TEXT_1'] %}</p>
+                    <p class="portal_blurb">{% raw tl['RESULTS_TEXT_2'] %}</p>
+                    {% if results %}
                         <h2><font color="red">{% raw tl['RESULTS_READY_HEADER_1'] %}</font></h2>
                         <p class="portal_blurb">{% raw tl['RESULTS_READY_TEXT_1'] %}</p>
                         <p class="portal_blurb">{% raw tl['RESULTS_READY_TEXT_2'] %}</p>
                         <ul>
-                {% for result in results %}
+                        {% for result in results %}
                             <li>
                                 <form action="{% raw media_locale['SITEBASE'] %}/authed/sample_overview/" method="post" id="sample_overview2_{{ result['barcode'] }}">
                                     <input type="hidden" name="barcode" id="barcode" value="{{ result['barcode'] }}"/>
                                 </form>
                                 <a href="" onclick="document.forms['sample_overview2_{{ result['barcode'] }}'].submit(); return false;">{{ result['barcode'] }} ({{ escape(result.get('participant_name', '') or '') }})</a>
                             </li>
-                {% end %}
+                        {% end %}
                         </ul>
-            {% else %}
+                    {% else %}
                         <p class="portal_blurb">{% raw tl['RESULTS_READY_TEXT_3'] %}</p>
-            {% end %}
+                    {% end %}
                     </div>
-                </div>
-        {% if kit_verified %}
-            {% if has_results %}
-        <script>selectTab('results')</script>
-            {% else %}
-        <script>selectTab('source')</script>
+                </div><!-- resuts_content -->
+
+                {% if kit_verified %}
+                    {% if has_results %}
+                        <script>selectTab('results')</script>
+                    {% else %}
+                        <script>selectTab('source')</script>
+                {% end %}
+        </div><!-- End of workflow content -->
+    </div><!-- End of sample Process -->
+    {% end %}
+
+    <div id="sample_results">
+        {% if results %}
+            {% for result in results %}
+                <ul>
+                {% for result in results %}
+                    <li>
+                        <form action="{% raw media_locale['SITEBASE'] %}/authed/sample_overview/" method="post" id="sample_overview2_{{ result['barcode'] }}">
+                            <input type="hidden" name="barcode" id="barcode" value="{{ result['barcode'] }}"/>
+                        </form>
+                        <a href="" onclick="document.forms['sample_overview2_{{ result['barcode'] }}'].submit(); return false;">{{ result['barcode'] }} ({{ escape(result.get('participant_name', '') or '') }})</a>
+                    </li>
+                {% end %}
+                </ul>
             {% end %}
+        {% else %}
+            <p class="portal_blurb">{% raw tl['RESULTS_READY_TEXT_3'] %}</p>
         {% end %}
-
-        {% end %}
-
-        <!-- end of sample process workflow -->
-    </div> <!-- End of workflow menu -->
-</div> <!-- end of workflow -->
-
+    </div>
+{% end %}
+</div>
 
