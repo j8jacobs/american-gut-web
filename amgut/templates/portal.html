@@ -15,10 +15,8 @@
 {% set maintenance = redis.get('maintenance') %}
 
 
-
 <!-- <script src="{% raw media_locale['SITEBASE'] %}/static/js/new_workflow_nav_tabs.js"></script>-->
 <script type="text/javascript">
-    console.log("{{avail_barcodes}}")
 var active_rgb = "rgb(204, 223, 255)"   // Bright Blue
 var inactive_rgba = "rgba(0, 0, 0, 0)"  // Silver
 var tabs = {
@@ -43,27 +41,53 @@ $(document).ready(function() {
     $("#sample_results").hide();
 
 
-    $("#workflow_nav > div").hover(function() {
-        $(this).css("background-color", active_rgb);
+    $("#workflow_nav > div").mouseover(function() {
+        //$(this).css("background-color", active_rgb);
+        var tabSelector = "#" + $(this).attr("id")
+        for(var tab_i in tabs) {
+            if (tabs[tab_i].sel == tabSelector) {
+                if (!tabs[tab_i].active) {
+                    $(this).css("background-color", active_rgb);
+                }
+            }
+        }
+    });
+    $("#workflow_nav > div").mouseout(function() {
+        //$(this).css("background-color", inactive_rgba);
+        var tabSelector = "#" + $(this).attr("id");
+        for(var tab_i in tabs){
+            if (tabs[tab_i].sel == tabSelector) {
+                if(!tabs[tab_i].active) {
+                    $(this).css("background-color", inactive_rgba);
+                }
+            }
+        }
     })
 
     $(tabs.partProf.sel).on("click", function() {
         $(tabs.partProf.sel).css("background-color", active_rgb)
         $(tabs.sampProc.sel).css("background-color", inactive_rgba);
-        $(tabs.sampRes.sel).css("background-color", inactive_rgba);  
+        $(tabs.sampRes.sel).css("background-color", inactive_rgba); 
+
+        tabs.partProf.active = true;
+        tabs.sampProc.active = false;
+        tabs.sampRes.active = false;
+
         $("#participant_profile").show();
         $("#sample_process").hide();
         $("#sample_results").hide()
     });
     
     $(tabs.sampProc.sel).on("click", function() {
-        //  1. Flip Tab visibility on
-        //      sample_workflow_tab visibility = not hidden
-        //  2. Display a tab's content (either 1st on or last visited..)
-        //      document.querySelectorAll('.portal_unselected')[0].className = 'portal_selected'
         $(tabs.partProf.sel).css("background-color", inactive_rgba)
         $(tabs.sampProc.sel).css("background-color", active_rgb);
         $(tabs.sampRes.sel).css("background-color", inactive_rgba);
+
+        tabs.partProf.active = false;
+        tabs.sampProc.active = true;
+        tabs.sampRes.active = false;
+
+
         $("#participant_profile").hide()
         $("#sample_process").show()
         $("#sample_results").hide()        
@@ -73,6 +97,12 @@ $(document).ready(function() {
         $(tabs.partProf.sel).css("background-color", inactive_rgba);
         $(tabs.sampProc.sel).css("background-color", inactive_rgba);
         $(tabs.sampRes.sel).css("background-color", active_rgb);
+
+        tabs.partProf.active = false;
+        tabs.sampProc.active = false;
+        tabs.sampRes.active = true;
+
+
         $("#participant_profile").hide()
         $("#sample_process").hide()
         $("#sample_results").show()
@@ -137,7 +167,7 @@ $(document).ready(function() {
     </div>
 </div>
 
-<h2>{% raw tl['GREETING'] % fmt %}</h2>
+<h2>UPDATE~{% raw tl['GREETING'] % fmt %}~UPDATE</h2>
 {% if errmsg %}
     <h2 class="msg">{% raw errmsg %}</h2>
 {% end %}
@@ -145,12 +175,54 @@ $(document).ready(function() {
     <!-- Start on the participant profile -->
     <div id="participant_profile">
         <!-- Find each of the kit id's, display them -->
-        <h1>Available Kit ID's</h1>
+        <h1>Unassigned Barcodes:</h1>
         {% for barcode in avail_barcodes %}
-            <p> {{barcode}} </p>
+            <h3>{{barcode}}</h3>
         {% end %}
+
+        <!-- TODO: DELETE
+        Process: 
+        1) user gets SKID and logs in/registers kit or something
+        2) This SKID has a list of avail_barcodes- these barcodes are not assigned to any human/animal/environmental participant
+        3) User must add a sample source: human, animal, environment
+            - They are now returned in human_participants/animal_partipants/enironmental_samples with NO INFO/empty list
+        4) That participant must then take the sample
+        5) Then the sample is logged
+            - Now the correspinding human/animal name will have corresponding informtionin the list
+        *6)  Once received, the status will not be None anymore but 'Recieved'*
+        *7) Once results are ready, the results will be in the results list* 
+        -->
+        {% if human_participants %}
+            <h1>Human Samples:</h1>
+            {% for participant, sample_info in human_participants.iteritems() %}
+                <p>&nbsp;{{participant}}:</p>
+                {% for sample in sample_info %}
+                    <p>{{sample}}<br><br></p>
+                {% end %}
+
+            {% end %}
+        {% end %}
+
+        {% if animal_participants %}
+            <h1>Animal Samples:</h1>
+            {% for participant in animal_participants %}
+                <h3>{{participant}}: {{animal_participants[participant][0]["status"]}}</h3>
+            {% end %}
+        {% end %}
+
+        {% if environmental_samples %}
+            <h1>Environmental Samples:</h1>
+            {% for sample in environmental_samples %}
+                <h3>{{sample["barcode"]}}: {{sample["status"]}}</h3>
+            {% end %}
+        {% end %}
+
+
+
     </div>
 
+
+    <!-- Start of sample process -->
     <div id="sample_process">
         <ul class="workflow_menu">
             <!-- Tabs -->
@@ -353,20 +425,21 @@ $(document).ready(function() {
     </div><!-- End of sample Process -->
     {% end %}
 
+
+    <!-- Start of sample results -->
     <div id="sample_results">
         {% if results %}
-            {% for result in results %}
-                <ul>
-                {% for result in results %}
-                    <li>
-                        <form action="{% raw media_locale['SITEBASE'] %}/authed/sample_overview/" method="post" id="sample_overview2_{{ result['barcode'] }}">
-                            <input type="hidden" name="barcode" id="barcode" value="{{ result['barcode'] }}"/>
-                        </form>
-                        <a href="" onclick="document.forms['sample_overview2_{{ result['barcode'] }}'].submit(); return false;">{{ result['barcode'] }} ({{ escape(result.get('participant_name', '') or '') }})</a>
-                    </li>
-                {% end %}
-                </ul>
-            {% end %}
+        <ul>
+        {% for result in results %}
+            <li>
+                <form action="{% raw media_locale['SITEBASE'] %}/authed/sample_overview/" method="post" id="sample_overview2_{{ result['barcode'] }}">
+                    <input type="hidden" name="barcode" id="barcode" value="{{ result['barcode'] }}"/>
+                </form>
+                <a href="" onclick="document.forms['sample_overview2_{{ result['barcode'] }}'].submit(); return false;">{{ result['barcode'] }} ({{ escape(result.get('participant_name', '') or '') }})</a>
+            </li>
+        {% end %}
+        </ul>
+         
         {% else %}
             <p class="portal_blurb">{% raw tl['RESULTS_READY_TEXT_3'] %}</p>
         {% end %}
